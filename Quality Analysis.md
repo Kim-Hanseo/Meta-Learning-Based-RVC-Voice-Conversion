@@ -4,15 +4,15 @@
 
 | Metric | Status | Issue? |
 |--------|--------|--------|
-| Output Length | ✅ Matches input (~3 s) | Resolved |
-| Speech Content Preservation | ❌ Phonetic content is unclear | **Problem** |
-| Target Speaker Similarity | ❌ Does not resemble the target speaker | **Problem** |
+| Output Length | Matches input (~3 s) | Resolved |
+| Speech Content Preservation | Phonetic content is unclear | **Problem** |
+| Target Speaker Similarity | Does not resemble the target speaker | **Problem** |
 
 ---
 
-## 🔍 Root Cause Analysis (by Severity)
+## Root Cause Analysis
 
-### 1. 🔴 Extremely Small Training Segment Size — Primary Cause
+### 1. Extremely Small Training Segment Size
 
 ```python
 # step4_model.py (line 34)
@@ -22,7 +22,6 @@ segment_size = 12000 // 480   # = 25 frames ≈ 0.25 s
 SEGMENT_SIZE = 12000           # 0.25 s at 48 kHz
 ```
 
-> [!CAUTION]
 > A `segment_size` of **12,000 samples (0.25 s)** defines how much audio the Generator sees in a single forward pass.
 > At roughly one syllable of speech, the model cannot learn the temporal context required for natural-sounding synthesis (phoneme transitions, prosody, utterance-level patterns).
 
@@ -38,13 +37,12 @@ SEGMENT_SIZE = 12000           # 0.25 s at 48 kHz
 
 ---
 
-### 2. 🔴 Insufficient Training Data Volume
+### 2. Insufficient Training Data Volume
 
 ```
 100 WAV files × ~3.5 s each = ~350 s ≈ 5.8 min
 ```
 
-> [!WARNING]
 > Approximately **6 minutes** of training data is well below the minimum recommended for RVC:
 > - **Minimum:** ~10 minutes
 > - **Ideal:** 30 min – 1 hour
@@ -57,7 +55,7 @@ SEGMENT_SIZE = 12000           # 0.25 s at 48 kHz
 
 ---
 
-### 3. 🟠 Insufficient Fine-Tuning Iterations
+### 3. Insufficient Fine-Tuning Iterations
 
 ```python
 # step4_finetune.py
@@ -71,13 +69,12 @@ FT_BATCH_SIZE = 8
 200 epochs × 12 batches   = ~2,400 iterations
 ```
 
-> [!IMPORTANT]
 > Standard RVC training typically requires **10,000 – 100,000+ iterations** for convergence.
 > The current ~2,400 iterations are far from sufficient.
 
 ---
 
-### 4. 🟠 HuBERT Frame-Rate Mismatch During Inference
+### 4. HuBERT Frame-Rate Mismatch During Inference
 
 The previous fix resolved the output-length issue, but interpolation introduces its own limitations:
 
@@ -90,7 +87,7 @@ During inference, features are extracted at a different frame rate and interpola
 
 ---
 
-### 5. 🟡 Structural Limitations of Reptile with a Single Speaker
+### 5. Structural Limitations of Reptile with a Single Speaker
 
 ```python
 # step4_reptile.py
@@ -99,7 +96,6 @@ INNER_STEPS      = 8
 NUM_TASK_SAMPLES = 20   # 20-sample subsets drawn from 100 total
 ```
 
-> [!NOTE]
 > Reptile is designed for **multi-speaker** scenarios where each task represents a different speaker.
 > When all tasks are drawn from a single speaker, the algorithm effectively reduces to **regularized fine-tuning**.
 >
@@ -107,7 +103,7 @@ NUM_TASK_SAMPLES = 20   # 20-sample subsets drawn from 100 total
 
 ---
 
-## 📊 Impact Diagram
+## Impact Diagram
 
 ```mermaid
 graph TD
@@ -122,7 +118,7 @@ graph TD
 
 ---
 
-## ✅ Recommended Improvements (by Priority)
+## Recommended Improvements
 
 ### Option 1: Optimize Training Configuration (Code-Only — Highest Impact)
 
@@ -149,15 +145,6 @@ graph TD
 - With only 100 samples from a single speaker, Reptile provides minimal benefit over standard fine-tuning.
 - Fine-tuning directly from the pretrained weights may yield comparable or better results.
 - The Reptile outer update can pull weights back toward the initialization, potentially slowing convergence.
-
----
-
-## 🎯 Quick-Start Fixes (Top 3 Changes for Immediate Impact)
-
-1. **Increase `SEGMENT_SIZE`:** `12,000` → `32,768` (adjust chunk length accordingly).
-2. **Increase `FT_EPOCHS`:** `200` → `800+`.
-3. **Increase preprocessing chunk length:** `3.5 s` → `8 – 10 s` (provides longer temporal context).
-
 > [!IMPORTANT]
 > Applying these changes requires **re-running from Step 2 (preprocessing) onward**.
 > The `segment_size` change must be reflected in **both training and inference** code paths.
