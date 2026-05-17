@@ -1,8 +1,6 @@
 # RVC + Reptile Meta-Learning Voice Conversion
 
-A voice conversion system that combines [RVC v2](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI) with [Reptile meta-learning](https://arxiv.org/abs/1803.02999) for rapid target speaker adaptation. The entire pipeline runs on a single Google Colab notebook.
-
-Given a small set of target speaker recordings, the model learns an optimized initialization via Reptile and fine-tunes to produce high-fidelity voice conversions from arbitrary source audio.
+A voice conversion system that combines [RVC v2](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI) with [Reptile meta-learning](https://arxiv.org/abs/1803.02999) for rapid target speaker adaptation. Given a small set of target speaker recordings, the model learns an optimized initialization via Reptile and fine-tunes to produce high-fidelity voice conversions from arbitrary source audio.
 
 ## Architecture
 
