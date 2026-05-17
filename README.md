@@ -109,31 +109,6 @@ for meta_step in range(num_meta_steps):
 
 The Reptile outer loop nudges the model's initialization toward a point that is easy to fine-tune for the target speaker, enabling faster convergence and better quality with limited data.
 
-## Directory Structure
-
-```
-Google Drive/
-└── RVC_MetaLearning/
-    ├── dataset/
-    │   └── target_voice/          # Target speaker WAV files
-    ├── pretrained/
-    │   ├── hubert_base.pt         # HuBERT
-    │   ├── rmvpe.pt               # RMVPE
-    │   ├── f0G48k.pth             # RVC Generator weights
-    │   └── f0D48k.pth             # RVC Discriminator weights
-    ├── features/
-    │   ├── hubert/                # Extracted content embeddings
-    │   ├── f0/                    # Extracted pitch features
-    │   └── wav/                   # Preprocessed audio
-    ├── checkpoints/
-    │   ├── meta_G_*.pth           # Meta-learning checkpoints
-    │   └── meta_D_*.pth
-    ├── models/
-    │   ├── target_voice.pth       # Final model
-    │   └── target_voice.index     # Faiss index
-    └── output/                    # Conversion results
-```
-
 ## Key Hyperparameters
 
 | Parameter | Value | Description |
